@@ -1,3 +1,9 @@
+/*
+  author: Meilian Liang 
+  institution: Gxu
+  Date: Oct. 1, 2017
+  Goal: Select sets 
+*/
 #include<stdio.h>
 #include"set.h"
 #define INIT_LIST_SIZE 3000
@@ -9,7 +15,7 @@ typedef struct{
    int listsize;
 }setlist_t;
 
-void init_setlist(setlist_t *psl, int n);
+void setlist_init(setlist_t *psl);
 void setlist_print(setlist_t sl);
 void setlist_fprint(setlist_t sl);
 void setlist_addset(setlist_t *psl, set_t sset);
@@ -20,8 +26,6 @@ int main()
     int set_size = 0, num;
     char ch;
     setlist_t sl; set_t refset, sset;
-    /* open the input file */
-
     FILE *fp;
 
     /* open the input file */
@@ -32,20 +36,21 @@ int main()
 
     /* read info. from file and init setlist */
     fscanf(fp, "%d\n", &set_size);   // read from the input file
-    init_setlist(&sl, set_size);     // init setlist
+    setlist_init(&sl);               // init setlist
     refset = set_new(set_size);      // init the reference set
-    sset = set_new(set_size);
-    setlist_print(sl);
+    sset = set_new(set_size);        // init the input set
 
-    /* read file and handle looply */
+    /* read file and handle looply 
+       read the reference set first: */
     do {
    	fscanf(fp,"%d%c",&num,&ch);
 	SET_ADD_ELEMENT(refset,num);
     }while(ch != ';');
-    set_print(refset); 
+    set_print(refset);
+
+    /* read sets looply */ 
     do {
    	fscanf(fp,"%d%c",&num,&ch);
-//        printf("num=%d,c =%c\n",num, ch);
 	SET_ADD_ELEMENT(sset,num);
 	if (ch == ';' || ch == '.'){
 	    if (is_intersectset_empty(sset,refset))
@@ -54,13 +59,11 @@ int main()
         }
     }while(ch != '.');
     setlist_fprint(sl);
-    //set_print(refset); 
-
 
     return 0;
 }
 
-void init_setlist(setlist_t *psl, int set_size)
+void setlist_init(setlist_t *psl)
 {
     if (!psl)
         psl = (setlist_t *)malloc(sizeof(setlist_t));
@@ -76,7 +79,11 @@ void init_setlist(setlist_t *psl, int set_size)
 void setlist_print(setlist_t sl)
 {
     int i;
-    printf("len:%d,list_size:%d. set list is :\n", sl.length, sl.listsize);
+    if (!(sl.length)){
+	printf("The list is empty.\n");
+	return;
+    }
+    printf("List of sets(len:%d):\n", sl.length);
 
     for (i=0; i<sl.length; i++)
         set_print(sl.elem[i]);
@@ -84,16 +91,26 @@ void setlist_print(setlist_t sl)
 
 void setlist_fprint(setlist_t sl)
 {
-    int i, j;
+    int i, j, cnt;
     FILE *fp;
-    if (!(fp = fopen("out.txt","w")))
+    if (!(fp = fopen("out.txt","w"))){
 	printf("Error openning the file!\n");
-    printf("len:%d,list_size:%d. set list is printed in the file \"out.txt\"\n", sl.length, sl.listsize);
+	exit(-1);
+    }
+    printf("The list(%d) is outputed into the file \"out.txt\"\n", sl.length);
 
     for (i=0; i<sl.length; i++){
-	for (j=0; j<SET_MAX_SIZE(sl.elem[i]); j++)
-		if (SET_CONTAINS(sl.elem[i],j))
-		     fprintf(fp," %d",j);
+	for (j=0, cnt=0; j<SET_MAX_SIZE(sl.elem[i])-1; j++)
+		if (SET_CONTAINS(sl.elem[i],j)){
+		     cnt++;
+                     if (cnt == set_size(sl.elem[i])){
+                         if (i == sl.length -1)
+		             fprintf(fp, "%d.", j);
+                         else fprintf(fp, "%d;",j);
+                     }
+		     else
+		        fprintf(fp,"%d,",j);
+                } 
 	fprintf(fp,"\n");
     }
 }
