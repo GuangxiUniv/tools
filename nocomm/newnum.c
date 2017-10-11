@@ -44,8 +44,7 @@ int main()
 
     /* read sets looply */ 
     do {
-   	if (!fscanf(fin,"%d%c",&num,&ch))
-           break;
+   	fscanf(fin,"%d%c",&num,&ch);
 	SET_ADD_ELEMENT(sset,num);
 	if (ch == ';' || ch == '.'){
 	    if (is_intersectset_empty(sset,refset))
